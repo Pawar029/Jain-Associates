@@ -5,25 +5,9 @@ import pic from '../Images/j&a.png'
 // import { Link } from 'react-router-dom';
 export default function Navbar() {
   return (
-    // <div className='sggs2'>
-    //     <nav>
-    //   <input type="checkbox" id="check"/>
-    //   <label for="check" className="checkbtn">
-    //     <i className="fas fa-bars"></i>
-    //   </label>
-    //   <label className="logo">Jain and Associates</label>
-    //   <ul>
-    //     <li><a href="/">Bricks</a></li>
-    //     <li><a href="/">Sand</a></li>
-    //     <li><a href="/">Cement</a></li>
-    //     <li><a href="/">Contact</a></li>
-    //     <li><a href="/">Feedback</a></li>
-    //   </ul>
-    // </nav>
-    // <section></section>
-    // </div>
-    <div>
-    <nav className="navbar navigation-wrap navbar-expand-lg navbar-light    ">
+    
+    <div className='sticky-top bg-primary-subtle  '>
+    <nav className="navbar navigation-wrap navbar-expand-lg ">
 
     {/* <nav className="navbar navbar-expand-lg  navigation-wrap bg-info"  > */}
       <div className="container-fluid ">
@@ -47,14 +31,20 @@ export default function Navbar() {
             <li className="nav-item m-2  ">
                <Link className="nav-link active fs-5 " data-bs-toggle="tooltip" aria-current="page" to="/slab"> SLAB</Link> 
             </li>
-            <li className="nav-item m-2">
-              <Link className="nav-link active fs-5" aria-current="page" to="/wall">WALL</Link>
-            </li>
-            <li className="nav-item m-2">
+            <li className="nav-item m-2 ">
               <Link className="nav-link active fs-5" aria-current="page" to="/beam">BEAM</Link>
             </li>
             <li className="nav-item m-2">
               <Link className="nav-link active fs-5" aria-current="page" to="/column">COLUMN</Link>
+            </li>
+            <li className="nav-item m-2">
+              <Link className="nav-link active fs-5" aria-current="page" to="/wall">WALL</Link>
+            </li>
+            <li className="nav-item m-2">
+              <Link className="nav-link active fs-5" aria-current="page" to="/footing">FOOTING</Link>
+            </li>
+            <li className="nav-item m-2">
+              <Link className="nav-link active fs-5" aria-current="page" to="/stair">STAIRCASE</Link>
             </li>
             {/* <li className="nav-item">
               <Link className="nav-link" to="/">Link</Link>

@@ -7,7 +7,9 @@ import {BrowserRouter, Route, Routes } from 'react-router-dom';
 import Footer from './components/Footer';
 import MaterialInBeam from "./components/MaterialInBeam";
 import MaterialInColumn from "./components/MaterialInColumn";
+import MaterialInFooting from "./components/MaterialInFooting";
 import MaterialInSlab from './components/MaterialInSlab';
+import MaterialInStaircase from "./components/MaterialInStaircase";
 import MaterialInWall from "./components/MaterialInWall";
 import Navbar from './components/Navbar/Navbar';
 import SlidingImages from './components/SlidingImages';
@@ -18,7 +20,7 @@ function App() {
   return (
     <div className="bg-primary-subtle">
       <BrowserRouter  >
-      <Navbar />
+      <Navbar/>
         
         <Routes>
          
@@ -28,11 +30,12 @@ function App() {
           <Route path="/wall" element={<MaterialInWall/> }/>
           <Route path="/beam" element={<MaterialInBeam/> }/>
           <Route path="/column" element={<MaterialInColumn/> }/>
+          <Route path="/footing" element={<MaterialInFooting/> }/>
+          <Route path="/stair" element={<MaterialInStaircase/>} />
           <Route path="/ok" element={<Footer />}/>
           
         </Routes>
-        {/* <MaterialInSlab/> */}
-
+     
         <Footer />
       </BrowserRouter>
     </div>
