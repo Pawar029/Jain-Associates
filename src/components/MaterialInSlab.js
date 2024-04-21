@@ -1,32 +1,34 @@
-import React, { useState } from 'react';
-import '../../node_modules/bootstrap/dist/css/bootstrap.min.css';
+import React, { useState, useEffect } from 'react';
+// import '../../node_modules/bootstrap/dist/css/bootstrap.min.css';
+import Axios from 'axios';
 
-// import pic from './Images/backgroundimage.jpg'
 
 
 
 export default function MaterialInSlab() {
 
   const [material, setMaterial] = useState({
-    name:"",
-    length: "",
-    bredth: "",
-    thick: "",
-    main_dia: "",
-    dist_dia: "",
-    spac_main: "",
-    spac_dist: "",
-    cover_slab: "",
-    top_ex_bar: "",
-    spac_ex_bar: "",
-    widt_b1: "",
-    widt_b2: "",
-    beam_cov: ""
+    name: "",
+    noOfSameSlab:0,
+    length: 0,
+    bredth: 0,
+    thick: 0,
+    main_dia: 0,
+    dist_dia: 0,
+    spac_main: 0,
+    spac_dist: 0,
+    cover_slab: 0,
+    top_ex_bar: 0,
+    spac_ex_bar: 0,
+    widt_b1: 0,
+    widt_b2: 0,
+    beam_cov: 0
 
 
   })
 
   const name = material.name;
+  const noOfSameSlab = parseFloat(material.noOfSameSlab);
   const length = parseFloat(material.length);
   const bredth = parseFloat(material.bredth);
   const thick = parseFloat(material.thick);
@@ -53,11 +55,23 @@ export default function MaterialInSlab() {
 
   const [selectedOption, setSelectedOption] = useState(null);
 
+
+  const [myData, setMyData] = useState([]);
+  useEffect(() => {
+    Axios.get("http://localhost:8000/slab/")
+      .then((res) =>
+        // console.log(res.data["Member List"])
+        setMyData(res.data),
+
+        // console.log(res.data),
+      );
+
+  }, [myData]);
+  // console.log("Data from backend ", myData);
+
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
   };
-
-
 
   const submit = (e) => {
 
@@ -69,25 +83,15 @@ export default function MaterialInSlab() {
     const dry_vol = wet_vol * 1.54;
     const total_ratio = 1 + 1.5 + 3;  //ratio 1 : 1.5 : 3
     const vol_cement = (1 / total_ratio) * dry_vol;
-    setNo_of_cement_bags(Math.ceil(vol_cement / 0.03539));  // volumne of each cement bag in cubic feet is 1.25 , and in cubic meter is 0.03539
+    setNo_of_cement_bags(Math.ceil((vol_cement*noOfSameSlab) / 0.03539));  // volumne of each cement bag in cubic feet is 1.25 , and in cubic meter is 0.03539
 
     const vol_sand = (1.5 / total_ratio) * dry_vol;
-    setVol_of_sand(Math.ceil(vol_sand));
+    setVol_of_sand(Math.ceil(vol_sand*noOfSameSlab));
 
-
+    console.log("Cement ",vol_cement/0.03539 , (vol_cement*noOfSameSlab) / 0.03539);
     const vol_Aggregate = (3 / total_ratio) * dry_vol;
-    setVol_of_Aggregate(Math.ceil(vol_Aggregate));
+    setVol_of_Aggregate(Math.ceil(vol_Aggregate*noOfSameSlab));
 
-    //  Steel Calculation of for Simple Slab
-    // if (selectedOption === 'simple') {
-    //   const No_of_mb = (length / spac_main) + 1;   //For Main Bars we use spacing as 0.984 feet (0.984 feet = 300 mm)
-    //   const No_of_db = (bredth / spac_dist) + 1;   //For Distributed Bars we use spacing as 1.476 feet (1.476 feet = 450 mm)
-
-    //   const weight_mainbar = ((main_dia * main_dia) * bredth * No_of_mb) / 162.2;   //((D^2) x total length of bars)/162 -----Diameter(D) is in mm
-    //   const weight_distbar = ((dist_dia * dist_dia) * length * No_of_db) / 162.2;   //((D^2) x total length of bars)/162 -----Diameter(D) is in mm
-    //   setWeight_mb(parseFloat(weight_mainbar.toFixed(3), 10));
-    //   setWeight_db(parseFloat(weight_distbar.toFixed(3), 10));
-    // }
     // Steel Calculation of for One-Way Slab
     if (selectedOption === 'oneway') {
       const No_of_mb = (length / spac_main) + 1;
@@ -101,14 +105,14 @@ export default function MaterialInSlab() {
       const top_ext_bar = bredth / 4;
       const No_top_ext_bar = ((top_ext_bar / spac_ex_bar) + 1) * 2;
       const cut_len_top_ext = cut_len_dist;
-      const wei_main = (cut_len_main * (main_dia * main_dia) * No_of_mb)/162;
-      const wei_dist = (cut_len_dist * (dist_dia * dist_dia) * No_of_db)/162;
-      const wei_top_ext_bar = (cut_len_top_ext * (top_ex_bar*top_ex_bar) * No_top_ext_bar)/162;
+      const wei_main = (cut_len_main * (main_dia * main_dia) * No_of_mb) / 162;
+      const wei_dist = (cut_len_dist * (dist_dia * dist_dia) * No_of_db) / 162;
+      const wei_top_ext_bar = (cut_len_top_ext * (top_ex_bar * top_ex_bar) * No_top_ext_bar) / 162;
 
 
-      setWeight_mb(parseFloat(wei_main.toFixed(3), 10));
-      setWeight_db(parseFloat(wei_dist.toFixed(3), 10));
-      setWeight_tb(parseFloat(wei_top_ext_bar.toFixed(3), 10)); //tb- top extra bar
+      setWeight_mb(parseFloat((wei_main*noOfSameSlab).toFixed(3), 10));
+      setWeight_db(parseFloat((wei_dist*noOfSameSlab).toFixed(3), 10));
+      setWeight_tb(parseFloat((wei_top_ext_bar*noOfSameSlab).toFixed(3), 10)); //tb- top extra bar
     }
 
     // Steel Calculation of for Two-Way Slab
@@ -140,20 +144,20 @@ export default function MaterialInSlab() {
       console.log(wei_main);
       console.log(wei_dist);
       console.log(wei_top_ext_bar);
-      setWeight_mb(parseFloat(wei_main.toFixed(3), 10));
-      setWeight_db(parseFloat(wei_dist.toFixed(3), 10));
-      setWeight_tb(parseFloat(wei_top_ext_bar.toFixed(3), 10)); //tb- top extra bar
+      setWeight_mb(parseFloat((wei_main*noOfSameSlab).toFixed(3), 10));
+      setWeight_db(parseFloat((wei_dist*noOfSameSlab).toFixed(3), 10));
+      setWeight_tb(parseFloat((wei_top_ext_bar*noOfSameSlab).toFixed(3), 10)); //tb- top extra bar
     }
 
     //  Steel Calculation of for Simple Slab
-    else{
+    else {
       const No_of_mb = (length / spac_main) + 1;   //For Main Bars we use spacing as 0.984 feet (0.984 feet = 300 mm)
       const No_of_db = (bredth / spac_dist) + 1;   //For Distributed Bars we use spacing as 1.476 feet (1.476 feet = 450 mm)
 
       const weight_mainbar = ((main_dia * main_dia) * bredth * No_of_mb) / 162.2;   //((D^2) x total length of bars)/162 -----Diameter(D) is in mm
       const weight_distbar = ((dist_dia * dist_dia) * length * No_of_db) / 162.2;   //((D^2) x total length of bars)/162 -----Diameter(D) is in mm
-      setWeight_mb(parseFloat(weight_mainbar.toFixed(3), 10));
-      setWeight_db(parseFloat(weight_distbar.toFixed(3), 10));
+      setWeight_mb(parseFloat((weight_mainbar*noOfSameSlab).toFixed(3), 10));
+      setWeight_db(parseFloat((weight_distbar*noOfSameSlab).toFixed(3), 10));
     }
 
     setShowresult(true)
@@ -163,125 +167,101 @@ export default function MaterialInSlab() {
 
   }
 
-
-
-
-
   const change = e => {
     const newdata = { ...material }
     newdata[e.target.id] = e.target.value
     setMaterial(newdata)
     // setlength(event.target.length)
-
-
   }
 
+  async function addTask(e) {
+    e.preventDefault();
+    console.log("addtask invoked");
 
-  const [tcement, setTcement] = useState(0);
-  const [tsand, setTsand] = useState(0);
-  const [taggregate, setTaggregate] = useState(0);
-  const [tmainsteel, setTmainsteel] = useState(0);
-  const [tdiststeel, setTdiststeel] = useState(0);
-  const [posts, setPosts] = useState([]);
+    try {
+      // console.log("hello");
+      await Axios.post("http://localhost:8000/slab/", {
+        name,
+        selectedOption,
+        noOfSameSlab,
+        No_of_cement_bags,
+        Vol_of_sand,
+        Vol_of_Aggregate,
+        main_dia,
+        Weight_mb,
+        dist_dia,
+        Weight_db,
+        top_ex_bar,
+        Weight_tb,
 
-  // State to store the Map
-  const [myMap, setMyMap] = useState(new Map());
-
-  const addTask = () => {
-    // if (taskText.trim() !== '') {
-    // setPosts([...posts, { title: taskText, id: Math.random(), length: length, bredth:bredth}]);
-
-    // let t =  total+No_of_cement_bags;
-    console.log("addtask invoked")
-    setTcement(tcement + No_of_cement_bags);
-    setTsand(tsand + Vol_of_sand);
-    setTaggregate(taggregate + Vol_of_Aggregate);
-    // let mb = (tmainsteel + Weight_mb);
-    // let db = (tmainsteel + Weight_mb);
-    setTmainsteel(tmainsteel + Weight_mb);
-    setTdiststeel(tdiststeel + Weight_db);
-    setPosts([...posts, {
-      name: name, length: length, bredth: bredth, thickness: thick, main_diameter: main_dia, dist_diameter: dist_dia,
-      cement: No_of_cement_bags, sand: Vol_of_sand, aggregate: Vol_of_Aggregate, mainsteel: Weight_mb, diststeel: Weight_db
-    }]);
-    // setTaskText('');
-    // }
-
-
-
-    // Check if the same main_dia exists
-    if (myMap.has(main_dia)) {
-      myMap.set(main_dia, myMap.get(main_dia) + Weight_mb);
-    } else {
-      myMap.set(main_dia, Weight_mb);
+      });
+      const res = await Axios.get("http://localhost:8000/slab/");
+      setMyData(res.data);
+      console.log("res", res.data);
+    }
+    catch (e) {
+      // console.log("here is error");
+      console.log(e);
     }
 
-    setMyMap(myMap);
-
-    // Check if the same top_ex_bar exists
-    if(selectedOption === 'oneway' || selectedOption === 'twoway'){
-    if (myMap.has(top_ex_bar)) {
-      myMap.set(top_ex_bar, myMap.get(top_ex_bar) + Weight_tb);
-    } else {
-      myMap.set(top_ex_bar, Weight_tb);
-    }
-    // Update the state with the new Map
-    setMyMap(myMap);
-  }
-
-    // Check if the same dist_dia exists
-    if (myMap.has(dist_dia)) {
-      myMap.set(dist_dia, myMap.get(dist_dia) + Weight_db);
-    } else {
-      myMap.set(dist_dia, Weight_db);
-    }
-    // Update the state with the new Map
-    setMyMap(myMap);
-
-    console.log("here is the map values");
-    console.log(myMap)
   };
 
+  const [slabSteel, setSlabSteel] = useState({});
+  const [total, setTotal] = useState([]);
+  const Total = async (e) => {
+    e.preventDefault();
+
+
+    try {
+
+      await Axios.patch("http://localhost:8000/result/");
+
+      const response = await Axios.get("http://localhost:8000/result/");
+      setTotal(response.data);
+      const { slabSteel } = response.data;
+      setSlabSteel(slabSteel);
+      console.log("response data", response.data);
+    }
+    catch (e) {
+      // console.log("here is error");
+      console.log(e);
+    }
+
+  };
+
+  const handleDelete = async (id) => {
+    // Perform delete operation using the id
+    console.log(`Deleting data with id ${id}`);
+    await Axios.delete(`http://localhost:8000/slab/${id}`)
+      .then(response => {
+        if (response.status === 200) {
+          alert(`Data with id ${id} deleted successfully`);
+        }
+        else if (response.status === 400) {
+          console.log(`Data with id ${id} not Found`);
+        }
+        else {
+          console.error(`Failed to delete data with id ${id}`);
+        }
+      }).catch(error => {
+        console.error('Error:', error);
+      });
+
+    await Axios.get("http://localhost:8000/slab/");
+  };
   const Print = () => {
-    console.log('print');
+    // console.log('print');
     const printContents = document.getElementById('printablediv').innerHTML;
 
-
-    // Create a new window for printing
-    let printWindow = window.open('', '_blank');
-
-    // Set the content of the new window to the printable content
-    printWindow.document.write('<html><head><title>Jain & Associates</title></head><body>');
-    // printWindow.document.body.innerHTML = printContents;
-
-    printWindow.document.write('<table>');
-    printWindow.document.write('<thead>Sunil Pawar</thead>');
-    printWindow.document.write(printContents);
-    printWindow.document.write('</table>');
-    printWindow.document.write('</body></html>');
-
-    // Print the contents
-    printWindow.print();
-
-    // Close the new window
-    printWindow.close();
-
-    // let originalContents = document.body.innerHTML;
-    // // document.body.innerHTML = printContents;
-    // let printWindow = window.open('', '_blank');
-    //   // printWindow.document.write('<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>');
-    //   printWindow.document.body.innerHTML = printContents ;
-    //   // printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">');
-    //   // printWindow.document.body.write(printContents);
-    //   printWindow.print();
-    //   // printWindow.close();
-
-    //   // printWindow.document.write('<link rel="stylesheet" href="path/to/node_modules/bootstrap/dist/css/bootstrap.min.css">');
-    // // window.print();
-    // document.body.innerHTML = originalContents;
+    let originalContents = document.body.innerHTML;
+    document.body.innerHTML = printContents;
+    window.print();
+    document.body.innerHTML = originalContents;
+    // Reload the current page
+    window.location.reload();
   }
 
-  
+
 
 
   return (
@@ -295,15 +275,22 @@ export default function MaterialInSlab() {
             <form className='align-center'  >
               <div className="row mb-3">
                 <div className='col-sm-2'></div>
-                <label htmlFor="inputEmail3" className="col-sm-3 fs-5 col-form-label">Slab Name:</label>
+                <label htmlFor="inputEmail3" className="col-sm-3 fs-5 col-form-label">Slab Name :</label>
                 <div className="col-sm-5">
-                  <input type="text" className="form-control" id="name" placeholder="Enter S1,S2,....." value={material.name} onChange={(e) => change(e)} required/>
+                  <input type="text" className="form-control" id="name" placeholder="Enter S1,S2,....." value={material.name} onChange={(e) => change(e)} required />
+                </div>
+              </div>
+              <div className="row mb-3">
+                <div className='col-sm-0'></div>
+                <label htmlFor="inputEmail3" className="col-sm-5 fs-5 col-form-label">Number of <b>{material.name}</b> Slab :</label>
+                <div className="col-sm-5">
+                  <input type="number" className="form-control" id="noOfSameSlab" placeholder="Enter No. of Same Slab" value={material.noOfSameSlab} onChange={(e) => change(e)} required />
                 </div>
               </div>
               <div className="input-group row mb-3">
                 <div className='col-sm-2'></div>
                 {/* <div className="input-group-prepend"> */}
-                <label className="col-sm-3 fs-5 col-form-label" htmlFor="inputGroupSelect01">Type Of Slab:</label>
+                <label className="col-sm-3 fs-5 col-form-label" htmlFor="inputGroupSelect01">Type Of Slab :</label>
                 {/* </div> */}
                 <div className="col-sm-5">
                   <select className="custom-select form-control" id="inputGroupSelect01" value={selectedOption !== null ? selectedOption : ''} onChange={handleOptionChange}>
@@ -316,7 +303,7 @@ export default function MaterialInSlab() {
               </div>
               <div className="row mb-3">
                 <div className='col-sm-2'></div>
-                <label htmlFor="inputEmail3" className="col-sm-3 fs-5 col-form-label">Length:</label>
+                <label htmlFor="inputEmail3" className="col-sm-3 fs-5 col-form-label">Length :</label>
                 <div className="col-sm-5">
                   <input type="number" className="form-control" id="length" placeholder="Enter in Meter" value={material.length} onChange={(e) => change(e)} required />
                 </div>
@@ -463,94 +450,81 @@ export default function MaterialInSlab() {
         <div id="create-task" className="mb-3">
           <div className="input-group">
 
-            <button className="btn btn-outline-primary fw-bolder p-2 border-2" onClick={addTask}>
+            <button className="btn btn-outline-primary fw-bolder p-2 border-2" onClick={(e) => addTask(e)}>
               Add
             </button>
           </div>
         </div>
         <div >
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Length</th>
-              <th>Breadth</th>
-              <th>Thickness</th>
-              <th>Main Diameter</th>
-              <th>Dist. Diameter</th>
-              <th>No. of Cement bags</th>
-              <th>Sand</th>
-              <th>Aggregate</th>
-              {/* <th>Weight Main Bar</th>
-              <th>Weight Dis. Bar</th> */}
+          <table className="table" >
+            <thead>
+              <tr>
+                <th>Name of Slab</th>
+                <th>No of Same Slab</th>
+                <th>Slab Type</th>
+                <th>No. of Cement bags</th>
+                <th>Sand</th>
+                <th>Aggregate</th>
+                <th>Actions</th>
 
 
-            </tr>
-          </thead>
-          <tbody >
+              </tr>
+            </thead>
+            <tbody  >
+              {myData.map((myData) => (
+                <tr  >
+                  <td >{myData.name}</td>
+                  <td >{myData.noOfSameSlab}</td>
+                  <td >{myData.selectedOption}</td>
+                  <td >{myData.No_of_cement_bags}</td>
+                  <td >{myData.Vol_of_sand}</td>
+                  <td >{myData.Vol_of_Aggregate}</td>
+                  <th><button className='btn btn-outline-primary fw-bolder border-2 ' onClick={() => handleDelete(myData._id)}>Delete</button></th>
+                </tr>
 
-            {posts.map((post) => (
-              <tr  >
-                <td>{post.name}</td>
-                <td>{post.length}</td>
-                <td>{post.bredth}</td>
-                <td>{post.thickness}</td>
-                <td>{post.main_diameter}</td>
-                <td>{post.dist_diameter}</td>
-                <td>{post.cement}</td>
-                <td>{post.sand}</td>
-                <td>{post.aggregate}</td>
-                {/* <td>{post.mainsteel}</td>
-                <td>{post.diststeel}</td> */}
+              ))}
+
+              <tr>
+                <th><button className='btn btn-outline-primary fw-bolder p-2 border-2 ' onClick={Total} >Click here to Get Total</button></th>
+                <td> </td>
+                <td> </td>
+                <th key={total.slabCement}>{total.slabCement}</th>
+                <th key={total.slabSand}>{total.slabSand}</th>
+                <th key={total.slabAggregate}>{total.slabAggregate}</th>
+                <th></th>
               </tr>
 
-            ))}
-            <tr>
-              <th>Total </th>
-              <td> </td>
-              <td> </td>
-              <td> </td>
-              <td> </td>
-              <td> </td>
-              <th>{tcement}</th>
-              <th>{tsand}</th>
-              <th>{taggregate}</th>
-              {/* <th>{tmainsteel}</th>
-              <th>{tdiststeel}</th> */}
-            </tr>
-          </tbody>
+            </tbody>
 
-        </table>
+          </table>
         </div>
 
-            <h3 className='mt-3'>Overall Steel Needed:</h3>
+        <h3 className='mt-3'>Overall Steel Needed:</h3>
         <div>
           <table className="table">
             <thead>
               <tr>
-              <th>Diameter</th>
-              <th>Total</th>
-              <th>Wastage of 10%</th>
-              <th>Overall Total</th>
-              <th>Order Place</th>
+                <th>Diameter</th>
+                <th>Total</th>
+                <th>Wastage of 10%</th>
+                <th>Overall Total</th>
+                <th>Order Place</th>
               </tr>
             </thead>
-            <tbody>
-
-              {Array.from(myMap.entries()).map(([key, value]) => (
+            <tbody >
+              {Object.entries(slabSteel).map(([dia, weight]) => (
                 < tr>
-                  <td >{key} MM</td>
-                  {/* <td >{value} KG</td> */}
-                  <td >{parseFloat((value).toFixed(3), 10)} KG</td>
-                  <td >{parseFloat((0.1 * value).toFixed(3), 10)} KG</td>
-                  <td >{parseFloat(((0.1 * value) + value).toFixed(3), 10)} KG</td>
-                  <td >{parseFloat((((0.1 * value) + value + 200)/1000).toFixed(3), 10)} Tone</td>
-                  {/* <td >{((0.1 * value) + value)} KG</td> */}
-                  {/* <td >{(((0.1 * value) + value + 200)/1000)} Tone</td> */}
-                  </tr>
-                ))}
+                  <td >{dia} MM</td>
+                  <td >{parseFloat((weight).toFixed(3), 10)} KG</td>
+                  <td >{parseFloat((0.1 * weight).toFixed(3), 10)} KG</td>
+                  <td >{parseFloat(((0.1 * weight) + weight).toFixed(3), 10)} KG</td>
+                  <td >{parseFloat((((0.1 * weight) + weight + 200) / 1000).toFixed(3), 10)} Tone</td>
 
-              
+                </tr>
+              ))}
+
+
+
 
             </tbody>
           </table>
@@ -560,6 +534,10 @@ export default function MaterialInSlab() {
         <button className='btn btn-outline-primary fw-bolder p-2 border-2 ' onClick={Print} >Print Page</button>
         {/* <PrintComponent/> */}
       </div>
+
+
+
+
 
     </div>
   )

@@ -1,8 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
+import Axios from 'axios';
 
 export default function MaterialInStaircase() {
 
   const [material, setMaterial] = useState({
+    name: "",
+    noOfSameStair: "",
     height: "",
     thick_stair: "",
     len_stair: "",
@@ -16,7 +19,8 @@ export default function MaterialInStaircase() {
      
   })
 
-
+  const name = material.name;
+  const noOfSameStair = parseFloat(material.noOfSameStair);
   const height = parseFloat(material.height);
   const thick_stair = parseFloat(material.thick_stair);
   const len_stair = parseFloat(material.len_stair);
@@ -39,6 +43,16 @@ export default function MaterialInStaircase() {
 
   const [showresult, setShowresult] = useState(false);
 
+  const [myData, setMyData] = useState([]);
+  useEffect(() => {
+    Axios.get("http://localhost:8000/stair/")
+      .then((res) =>
+        // console.log(res.data["Member List"])
+        setMyData(res.data),
+
+      );
+
+  }, [myData]);
 
   const submit = (e) => {
 
@@ -53,14 +67,14 @@ export default function MaterialInStaircase() {
     const dry_vol = tot_wet_vol * 1.54;
     const total_ratio = 1 + 1.5 + 3;  //ratio 1 : 1.5 : 3
     const vol_cement = (1 / total_ratio) * dry_vol;
-    setNo_of_cement_bags(Math.ceil(vol_cement / 0.03539));  // volumne of each cement bag in cubic feet is 1.25
+    setNo_of_cement_bags(Math.ceil((vol_cement*noOfSameStair) / 0.03539));  // volumne of each cement bag in cubic feet is 1.25
 
     const vol_sand = (1.5 / total_ratio) * dry_vol;
-    setVol_of_sand((vol_sand));
+    setVol_of_sand((vol_sand*noOfSameStair).toFixed(3), 10);
 
 
     const vol_Aggregate = (3 / total_ratio) * dry_vol;
-    setVol_of_Aggregate((vol_Aggregate));
+    setVol_of_Aggregate((vol_Aggregate*noOfSameStair).toFixed(3), 10);
 
 
     // Calculation of Steel
@@ -73,8 +87,8 @@ export default function MaterialInStaircase() {
    const wei_short_bar = (len_short_bar * short_dia * short_dia) / 162 ;
 
 
-    setLongBarWeight(parseFloat(wei_long_bar.toFixed(3), 10));
-    setShortBarWeight(parseFloat(wei_short_bar.toFixed(3), 10));
+    setLongBarWeight(parseFloat((wei_long_bar*noOfSameStair).toFixed(3), 10));
+    setShortBarWeight(parseFloat((wei_short_bar*noOfSameStair).toFixed(3), 10));
 
 
 
@@ -92,78 +106,123 @@ export default function MaterialInStaircase() {
     setMaterial(newdata)
   }
 
-//   const [tcement, setTcement] = useState(0);
-//   const [tsand, setTsand] = useState(0);
-//   const [taggregate, setTaggregate] = useState(0);
-//   const [tlongsteel, setTlongsteel] = useState(0);
-//   const [tstirsteel, setTstirsteel] = useState(0);
-//   const [posts, setPosts] = useState([]);
+  const addTask = async (e) => {
+    e.preventDefault();
+    console.log("addtask invoked")
 
-//   const addTask = () => {
+    try {
+      console.log("hello");
+      await Axios.post("http://localhost:8000/stair/", {
+        name,
+        noOfSameStair,
+        No_of_cement_bags,
+        Vol_of_sand,
+        Vol_of_Aggregate,
+        long_dia,
+        longBarWeight,
+        short_dia,
+        shortBarWeight,
 
-//     console.log("addtask invoked")
-//     setTcement(tcement + No_of_cement_bags);
-//     setTsand(tsand + Vol_of_sand);
-//     setTaggregate(taggregate + Vol_of_Aggregate);
-//     setTlongsteel(tlongsteel + longitudinalBarWeight);
-//     setTstirsteel(tstirsteel + stirrupsWeight);
-//     setPosts([...posts, {
-//       length: length, breadth: breadth, height: height, cement: No_of_cement_bags, sand: Vol_of_sand, aggregate: Vol_of_Aggregate, longsteel: longitudinalBarWeight, stirsteel: stirrupsWeight
-//     }]);
-
-//   };
-
-//   const Print = () => {
-//     console.log('print');
-//     const printContents = document.getElementById('printablediv').innerHTML;
-
-
-//     // // Create a new window for printing
-//     let printWindow = window.open('', '_blank');
-
-//     // Set the content of the new window to the printable content
-//     // printWindow.document.write('<html><head><title>Jain & Associates</title></head><body>');
-//     printWindow.document.body.innerHTML = printContents;
-//     // printWindow.document.write(printContents);
-//     // printWindow.document.write('</body></html>');
-
-//     // Print the contents
-//     printWindow.print();
-
-//     // Close the new window
-//     printWindow.close();
-
-//     // let originalContents = document.body.innerHTML;
-//     // document.body.innerHTML = printContents;
-//     // // let printWindow = window.open('', '_blank');
-//     // // printWindow.document.body.innerHTML = printContents ;
-//     // // printWindow.document.body.write(printContents);
-//     // // printWindow.print();
-//     // window.print();
-//     // document.body.innerHTML = originalContents;
-//   }
+      });
+      const res = await Axios.get("http://localhost:8000/stair/");
+      setMyData(res.data);
+      console.log("res", res.data);
+    }
+    catch (e) {
+      // console.log("here is error");
+      console.log(e);
+    }
 
 
+    // Call the Total function
+    await Total(e);
+  };
 
+  const [stairSteel, setStairSteel] = useState({});
+  const [total, setTotal] = useState([]);
+  const Total = async (e) => {
+    e.preventDefault();
+
+
+    try {
+
+      await Axios.patch("http://localhost:8000/resultstair/");
+
+      const response = await Axios.get("http://localhost:8000/resultstair/");
+      setTotal(response.data);
+      const { stairSteel } = response.data;
+      setStairSteel(stairSteel);
+      console.log("response data", response.data);
+    }
+    catch (e) {
+      // console.log("here is error");
+      console.log(e);
+    }
+
+  };
+
+  const handleDelete = async (e, id) => {
+    // Perform delete operation using the id
+    console.log(`Deleting data with id ${id}`);
+    await Axios.delete(`http://localhost:8000/stair/${id}`)
+      .then(response => {
+        if (response.status === 200) {
+          alert(`Data with id ${id} deleted successfully`);
+        }
+        else if (response.status === 400) {
+          console.log(`Data with id ${id} not Found`);
+        }
+        else {
+          console.error(`Failed to delete data with id ${id}`);
+        }
+      }).catch(error => {
+        console.error('Error:', error);
+      });
+
+    await Axios.get("http://localhost:8000/stair/");
+    // Call the Total function
+    await Total(e);
+  };
+
+  const Print = async (e) => {
+    e.preventDefault();
+    console.log('print');
+    let printContents = document.getElementById('printablediv').innerHTML;
+
+    let originalContents = document.body.innerHTML;
+    document.body.innerHTML = printContents;
+    window.print();
+    window.close();
+    document.body.innerHTML = originalContents;
+    // Reload the current page
+    window.location.reload();
+    await Total(e);
+  }   
 
   return (
-    <div className='p-4'>
+    <div className='p-4' align="center"  >
 
-      <div align="center"  >
+      <div >
         <figure className="figure" >
           {/* <img src={pic} className="bg-opacity-25 figure-img img-fluid rounded" alt="..." /> */}
           <figcaption className="figure-caption" >
             <div className='  p-2 my-4 text-primary-emphasis bg-light border border-primary rounded-3' >
               <h2 className='p-2' align='center'>Material Needed for StairCase</h2>
               <form className='align-center'  >
-                {/* <div className="row mb-3">
+                <div className="row mb-3">
                   <div className='col-sm-2'></div>
-                  <label htmlFor="inputEmail3" className="col-sm-3 fs-5 col-form-label">Column Name:</label>
+                  <label htmlFor="inputEmail3" className="col-sm-3 fs-5 col-form-label">Stair Name:</label>
                   <div className="col-sm-5">
-                    <input type="text" className="form-control" id="length" placeholder="Enter C1,C2,....." />
+                    <input type="text" className="form-control" id="name" placeholder="Enter St1,St2,....." value={material.name} onChange={(e) => change(e)} required />
                   </div>
-                </div> */}
-
+                </div>
+                <div className="row mb-3">
+                <div className='col-sm-0'></div>
+                <label htmlFor="inputEmail3" className="col-sm-5 fs-5 col-form-label">Number of <b>{material.name}</b> Stair :</label>
+                <div className="col-sm-5">
+                  <input type="number" className="form-control" id="noOfSameStair" placeholder="Enter No. of Same Column" value={material.noOfSameStair} onChange={(e) => change(e)} required />
+                </div>
+              </div>
                 <div className="row mb-3">
                   <div className='col-sm-0'></div>
                   <label htmlFor="inputEmail3" className="col-sm-5 fs-5 col-form-label">Height:</label>
@@ -258,12 +317,12 @@ export default function MaterialInStaircase() {
         </figure>
 
       </div>
-      {/* <div className="mt-5" id='printablediv'>
+      <div className="m-3" id='printablediv'>
         <h1 className="text-center mb-4">List</h1>
         <div id="create-task" className="mb-3">
           <div className="input-group">
 
-            <button className="btn btn-primary" onClick={addTask}>
+            <button className="btn btn-outline-primary fw-bolder p-2 border-2" onClick={addTask}>
               Add
             </button>
           </div>
@@ -271,49 +330,71 @@ export default function MaterialInStaircase() {
         <table className="table">
           <thead>
             <tr>
-              <th>Length</th>
-              <th>Depth</th>
-              <th>Width</th>
+              <th>Name of Column</th>
+              <th>No of Same Column</th>
               <th>No. of Cement bags</th>
               <th>Sand</th>
               <th>Aggregate</th>
-              <th>Weight Long Bar</th>
-              <th>Weight Stirrups Bar</th>
+              <th>Actions</th>
 
 
             </tr>
           </thead>
           <tbody>
-            {posts.map((post) => (
-
+            {myData.map((myData) => (
               <tr  >
-                <td>{post.length}</td>
-                <td>{post.breadth}</td>
-                <td>{post.height}</td>
-                <td>{post.cement}</td>
-                <td>{post.sand}</td>
-                <td>{post.aggregate}</td>
-                <td>{post.longsteel}</td>
-                <td>{post.stirsteel}</td>
-
+                <td >{myData.name}</td>
+                <td >{myData.noOfSameStair}</td>
+                <td >{myData.No_of_cement_bags}</td>
+                <td >{myData.Vol_of_sand}</td>
+                <td >{myData.Vol_of_Aggregate}</td>
+                <th><button className='btn btn-outline-primary fw-bolder border-2' onClick={(e) => handleDelete(e, myData._id)}>Delete</button></th>
               </tr>
 
             ))}
             <tr>
-              <th>Total </th>
+              <th><button className='btn btn-outline-primary fw-bolder p-2 border-2 ' onClick={Total} >Click here to Get Total</button></th>
               <td> </td>
-              <td> </td>
-              <th>{tcement}</th>
-              <th>{tsand}</th>
-              <th>{taggregate}</th>
-              <th>{tlongsteel}</th>
-              <th>{tstirsteel}</th>
+              <th key={total.stairCement}>{total.stairCement}</th>
+              <th key={total.stairSand}>{total.stairSand}</th>
+              <th key={total.stairAggregate}>{total.stairAggregate}</th>
+              <th></th>
             </tr>
           </tbody>
 
         </table>
-        <button className='btn bg-info fw-bolder text-light p-2 border-2 ' onClick={Print} >Print Page</button>
-      </div> */}
+
+        <div>
+          <h3 className='mt-3'>Overall Steel Needed:</h3>
+          <div>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Diameter</th>
+                  <th>Total</th>
+                  <th>Wastage of 10%</th>
+                  <th>Overall Total</th>
+                  <th>Order Place</th>
+                </tr>
+              </thead>
+              <tbody>
+
+                {Object.entries(stairSteel).map(([dia, weight]) => (
+                  < tr>
+                    <td >{dia} MM</td>
+                    <td >{parseFloat((weight).toFixed(3), 10)} KG</td>
+                    <td >{parseFloat((0.1 * weight).toFixed(3), 10)} KG</td>
+                    <td >{parseFloat(((0.1 * weight) + weight).toFixed(3), 10)} KG</td>
+                    <td >{parseFloat((((0.1 * weight) + weight + 200) / 1000).toFixed(3), 10)} Tone</td>
+                  </tr>
+                ))}
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <button className='btn btn-outline-primary fw-bolder p-2 border-2 ' onClick={Print} >Print Page</button>
+      </div>
     </div>
   )
 }

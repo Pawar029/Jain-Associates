@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import Axios from 'axios';
 
 export default function MaterialInBeam() {
 
   const [material, setMaterial] = useState({
     name: "",
+    noOfSameBeam: "",
     length: "",
     depth: "",
     width: "",
@@ -22,6 +24,7 @@ export default function MaterialInBeam() {
   })
 
   const name = material.name;
+  const noOfSameBeam = parseFloat(material.noOfSameBeam);
   const length = parseFloat(material.length);
   const depth = parseFloat(material.depth);
   const width = parseFloat(material.width);
@@ -49,25 +52,34 @@ export default function MaterialInBeam() {
   const [Weight_bott_ex, setWeight_bott_ex] = useState("");
 
   const [showresult, setShowresult] = useState(false);
+  const [myData, setMyData] = useState([]);
+  useEffect(() => {
+    Axios.get("http://localhost:8000/beam/")
+      .then((res) =>
+        // console.log(res.data["Member List"])
+        setMyData(res.data),
+
+        // console.log(res.data),
+      );
+
+  }, [myData]);
 
   const submit = (e) => {
 
-    e.preventDefault();
-
-
+    e.preventDefault()
     const wet_vol = length * depth * width;
     // console.log(wet_vol);
     const dry_vol = wet_vol * 1.54;
     const total_ratio = 1 + 1.5 + 3;  //ratio 1 : 1.5 : 3
     const vol_cement = (1 / total_ratio) * dry_vol;
-    setNo_of_cement_bags(Math.ceil(vol_cement / 0.03539));  // volumne of each cement bag in cubic feet is 1.25
+    setNo_of_cement_bags(Math.ceil((vol_cement * noOfSameBeam) / 0.03539));  // volumne of each cement bag in cubic feet is 1.25
 
     const vol_sand = (1.5 / total_ratio) * dry_vol;
-    setVol_of_sand(parseFloat(vol_sand.toFixed(3), 10));
+    setVol_of_sand(parseFloat((vol_sand * noOfSameBeam).toFixed(3), 10));
 
 
     const vol_Aggregate = (3 / total_ratio) * dry_vol;
-    setVol_of_Aggregate(parseFloat(vol_Aggregate.toFixed(3), 10));
+    setVol_of_Aggregate(parseFloat((vol_Aggregate * noOfSameBeam).toFixed(3), 10));
 
     // Calculation for Steel
     const len_bott_bar = length + (2 * 50 * (bott_dia / 1000));
@@ -79,23 +91,20 @@ export default function MaterialInBeam() {
     const wei_top_bar = (no_top_bar * len_top_bar * top_dia * top_dia) / 162.2;
     const wei_stir = (no_of_stir * len_stir * stir_dia * stir_dia) / 162.2;
 
-    setWeight_bb(parseFloat(wei_bott_bar.toFixed(3), 10));
-    setWeight_tb(parseFloat(wei_top_bar.toFixed(3), 10));
-    setWeight_st(parseFloat(wei_stir.toFixed(3), 10));
+    setWeight_bb(parseFloat((wei_bott_bar * noOfSameBeam).toFixed(3), 10));
+    setWeight_tb(parseFloat((wei_top_bar * noOfSameBeam).toFixed(3), 10));
+    setWeight_st(parseFloat((wei_stir * noOfSameBeam).toFixed(3), 10));
 
     // For Top Extra Bar
     const len_top_ext_bar = 0.3 * len_top_bar;          // Total extra bars from both side should be given by user
     const wei_top_ext_bar = (no_top_ex * len_top_ext_bar * top_ex_dia * top_ex_dia) / 162.2;
-    setWeight_top_ex(parseFloat(wei_top_ext_bar.toFixed(3), 10));
+    setWeight_top_ex(parseFloat((wei_top_ext_bar * noOfSameBeam).toFixed(3), 10));
 
     // For Bottom Extra Bar
     const a = 0.2 * len_bott_bar;
     const len_bott_ext_bar = len_bott_bar - (2 * a)
     const wei_bott_ext_bar = (no_bott_ex * len_bott_ext_bar * bott_ex_dia * bott_ex_dia) / 162.2;
-    setWeight_bott_ex(parseFloat(wei_bott_ext_bar.toFixed(3), 10));
-
-
-
+    setWeight_bott_ex(parseFloat((wei_bott_ext_bar * noOfSameBeam).toFixed(3), 10));
 
 
     setShowresult(true)
@@ -108,118 +117,104 @@ export default function MaterialInBeam() {
   }
 
 
-  const [tcement, setTcement] = useState(0);
-  const [tsand, setTsand] = useState(0);
-  const [taggregate, setTaggregate] = useState(0);
+  async function addTask(e) {
+    e.preventDefault();
+    console.log("addtask invoked");
 
-  const [ttopsteel, setTtopsteel] = useState(0);
-  const [tbottsteel, setTbottsteel] = useState(0);
-  const [tstirsteel, setTstirsteel] = useState(0);
-  const [ttopexsteel, setTtopexsteel] = useState(0);
-  const [tbottexsteel, setTbottexsteel] = useState(0);
-
-  const [posts, setPosts] = useState([]);
-
-  // State to store the Map
-  const [myMap, setMyMap] = useState(new Map());
-
-  const addTask = () => {
-    // if (taskText.trim() !== '') {
-    // setPosts([...posts, { title: taskText, id: Math.random(), length: length, bredth:bredth}]);
-
-    // let t =  total+No_of_cement_bags;
-    console.log("addtask invoked")
-    setTcement(tcement + No_of_cement_bags);
-    setTsand(tsand + Vol_of_sand);
-    setTaggregate(taggregate + Vol_of_Aggregate);
-
-    setTtopsteel(ttopsteel + Weight_tb);
-    setTbottsteel(tbottsteel + Weight_bb);
-    setTstirsteel(tstirsteel + Weight_st);
-    setTtopexsteel(ttopexsteel + Weight_top_ex);
-    setTbottexsteel(tbottexsteel + Weight_bott_ex);
-    setPosts([...posts, {
-      name: name, length: length, depth: depth, width: width, cement: No_of_cement_bags, sand: Vol_of_sand, aggregate: Vol_of_Aggregate, topsteel: Weight_tb, bottsteel: Weight_bb, stirrups: Weight_st, top_ext: Weight_top_ex, bott_ext: Weight_bott_ex
-    }]);
-    
-
-    // Check if the same top_dia exists
-    if (myMap.has(top_dia)) {
-      myMap.set(top_dia, myMap.get(top_dia) + Weight_tb);
-    } else {
-      myMap.set(top_dia, Weight_tb);
+    try {
+      // console.log("hello");
+      await Axios.post("http://localhost:8000/beam/", {
+        name,
+        noOfSameBeam,
+        No_of_cement_bags,
+        Vol_of_sand,
+        Vol_of_Aggregate,
+        top_dia,
+        Weight_tb,
+        bott_dia,
+        Weight_bb,
+        stir_dia,
+        Weight_st,
+        top_ex_dia,
+        Weight_top_ex,
+        bott_ex_dia,
+        Weight_bott_ex,
+      });
+      const res = await Axios.get("http://localhost:8000/beam/");
+      setMyData(res.data);
+      console.log("res", res.data);
+    }
+    catch (e) {
+      // console.log("here is error");
+      console.log(e);
     }
 
-    setMyMap(myMap);
-
-    // Check if the same bott_dia exists
-    if (myMap.has(bott_dia)) {
-      myMap.set(bott_dia, myMap.get(bott_dia) + Weight_bb);
-    } else {
-      myMap.set(bott_dia, Weight_bb);
-    }
-    // Update the state with the new Map
-    setMyMap(myMap);
-
-
-    // Check if the same stir_dia exists
-    if (myMap.has(stir_dia)) {
-      myMap.set(stir_dia, myMap.get(stir_dia) + Weight_st);
-    } else {
-      myMap.set(stir_dia, Weight_st);
-    }
-    // Update the state with the new Map
-    setMyMap(myMap);
-
-
-    // Check if the same top_ex_dia exists
-    if (myMap.has(top_ex_dia)) {
-      myMap.set(top_ex_dia, myMap.get(top_ex_dia) + Weight_top_ex);
-    } else {
-      myMap.set(top_ex_dia, Weight_top_ex);
-    }
-    // Update the state with the new Map
-    setMyMap(myMap);
-
-
-    // Check if the same dist_dia exists
-    if (myMap.has(bott_ex_dia)) {
-      myMap.set(bott_ex_dia, myMap.get(bott_ex_dia) + Weight_bott_ex);
-    } else {
-      myMap.set(bott_ex_dia, Weight_bott_ex);
-    }
-    // Update the state with the new Map
-    setMyMap(myMap);
+    // Call the Total function
+    await Total(e);
 
   };
 
-  const Print = () => {
+  const [beamSteel, setBeamSteel] = useState({});
+  const [total, setTotal] = useState([]);
+
+  const Total = async (e) => {
+    e.preventDefault();
+
+
+    try {
+
+      await Axios.patch("http://localhost:8000/resultbeam/");
+
+      const response = await Axios.get("http://localhost:8000/resultbeam/");
+      setTotal(response.data);
+      const { beamSteel } = response.data;
+      setBeamSteel(beamSteel);
+      console.log("response data", response.data);
+    }
+    catch (e) {
+      // console.log("here is error");
+      console.log(e);
+    }
+
+  };
+
+  const handleDelete = async (e, id) => {
+    e.preventDefault();
+    // Perform delete operation using the id
+    console.log(`Deleting data with id ${id}`);
+    await Axios.delete(`http://localhost:8000/beam/${id}`)
+      .then(response => {
+        if (response.status === 200) {
+          alert(`Data with id ${id} deleted successfully`);
+        }
+        else if (response.status === 400) {
+          console.log(`Data with id ${id} not Found`);
+        }
+        else {
+          console.error(`Failed to delete data with id ${id}`);
+        }
+      }).catch(error => {
+        console.error('Error:', error);
+      });
+
+    // Call the Total function
+    await Total(e);
+    await Axios.get("http://localhost:8000/beam/");
+  };
+
+  const Print = async (e) => {
+    e.preventDefault();
     console.log('print');
     let printContents = document.getElementById('printablediv').innerHTML;
 
-    // Create a new window for printing
-    // let printWindow = window.open('', '_blank');
-
-    // // Set the content of the new window to the printable content
-    // // printWindow.document.write('<html><head><title>Jain & Associates</title></head><body>');
-    // printWindow.document.innerHTML = printContents ;
-    // // printWindow.document.write(printContents);
-    // // printWindow.document.write('</body></html>');
-
-    // // Print the contents
-    // printWindow.print();
-
-    // // Close the new window
-    // printWindow.close();
-
     let originalContents = document.body.innerHTML;
     document.body.innerHTML = printContents;
-    // let printWindow = window.open('', '_blank');
-    // printWindow.document.body.innerHTML = printContents ;
-    // printWindow.document.body.write(printContents);
-    // printWindow.print();
     window.print();
+    window.close();
     document.body.innerHTML = originalContents;
+    // Reload the current page
+    window.location.reload();
+    await Total(e);
   }
 
   return (
@@ -235,7 +230,14 @@ export default function MaterialInBeam() {
                 <div className='col-sm-2'></div>
                 <label htmlFor="inputEmail3" className="col-sm-3 fs-5 col-form-label">Beam Name:</label>
                 <div className="col-sm-5">
-                  <input type="text" className="form-control" id="name" placeholder="Enter B1,B2,....." value={material.name} onChange={(e) => change(e)} required/>
+                  <input type="text" className="form-control" id="name" placeholder="Enter B1,B2,....." value={material.name} onChange={(e) => change(e)} required />
+                </div>
+              </div>
+              <div className="row mb-3">
+                <div className='col-sm-2'></div>
+                <label htmlFor="inputEmail3" className="col-sm-3 fs-5 col-form-label">Number of <b>{material.name}</b> Beam :</label>
+                <div className="col-sm-5">
+                  <input type="number" className="form-control" id="noOfSameBeam" placeholder="Enter No. of Same Beam" value={material.noOfSameBeam} onChange={(e) => change(e)} required />
                 </div>
               </div>
 
@@ -387,94 +389,66 @@ export default function MaterialInBeam() {
         <table className="table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Length</th>
-              <th>Depth</th>
-              <th>Width</th>
+              <th>Name of Slab</th>
+              <th>No of Same Slab</th>
               <th>No. of Cement bags</th>
               <th>Sand</th>
               <th>Aggregate</th>
-              {/* <th>Weight Top Bar</th>
-              <th>Weight Bottom Bar</th>
-              <th>Weight Stirrups Bar</th>
-              <th>Weight Top Extra Bar</th>
-              <th>Weight Bottom Extra Bar</th> */}
-
+              <th>Actions</th>
 
             </tr>
           </thead>
           <tbody>
-            {posts.map((post) => (
+            {myData.map((myData) => (
 
               <tr  >
-                <td>{post.name}</td>
-                <td>{post.length}</td>
-                <td>{post.depth}</td>
-                <td>{post.width}</td>
-                <td>{post.cement}</td>
-                <td>{post.sand}</td>
-                <td>{post.aggregate}</td>
-                {/* <td>{post.topsteel}</td>
-                <td>{post.bottsteel}</td>
-                <td>{post.stirrups}</td>
-                <td>{post.top_ext}</td>
-                <td>{post.bott_ext}</td> */}
+                <td >{myData.name}</td>
+                <td >{myData.noOfSameBeam}</td>
+                <td >{myData.No_of_cement_bags}</td>
+                <td >{myData.Vol_of_sand}</td>
+                <td >{myData.Vol_of_Aggregate}</td>
+                <th><button className='btn btn-outline-primary fw-bolder p-2 border-2 m-2' onClick={(e) => handleDelete(e, myData._id)}>Delete</button></th>
               </tr>
 
             ))}
             <tr>
-              <th>Total </th>
+              <th><button className='btn btn-outline-primary fw-bolder p-2 border-2 ' onClick={Total} >Click here to Get Total</button></th>
               <td> </td>
-              <td> </td>
-              <td> </td>
-              <th>{parseFloat(tcement.toFixed(3), 10)}</th>
-              <th>{parseFloat(tsand.toFixed(3), 10)}</th>
-              <th>{parseFloat(taggregate.toFixed(3), 10)}</th>
-             
-              
-              {/* <th>{ttopsteel}</th>
-              <th>{tbottsteel}</th>
-              <th>{tstirsteel}</th>
-              <th>{ttopexsteel}</th>
-              <th>{tbottexsteel}</th> */}
+              <th key={total.beamCement}>{total.beamCement}</th>
+              <th key={total.beamSand}>{total.beamSand}</th>
+              <th key={total.beamAggregate}>{total.beamAggregate}</th>
+              <th></th>
             </tr>
           </tbody>
-
         </table>
-
         <div>
-        <h3 className='mt-3'>Overall Steel Needed:</h3>
-        <div>
-          <table className="table">
-            <thead>
-              <tr>
-              <th>Diameter</th>
-              <th>Total</th>
-              <th>Wastage of 10%</th>
-              <th>Overall Total</th>
-              <th>Order Place</th>
-              </tr>
-            </thead>
-            <tbody>
+          <h3 className='mt-3'>Overall Steel Needed:</h3>
+          <div>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Diameter</th>
+                  <th>Total</th>
+                  <th>Wastage of 10%</th>
+                  <th>Overall Total</th>
+                  <th>Order Place</th>
+                </tr>
+              </thead>
+              <tbody>
 
-              {Array.from(myMap.entries()).map(([key, value]) => (
-                < tr>
-                  <td >{key} MM</td>
-                  {/* <td >{value} KG</td> */}
-                  <td >{parseFloat((value).toFixed(3), 10)} KG</td>
-                  <td >{parseFloat((0.1 * value).toFixed(3), 10)} KG</td>
-                  <td >{parseFloat(((0.1 * value) + value).toFixed(3), 10)} KG</td>
-                  <td >{parseFloat((((0.1 * value) + value + 200)/1000).toFixed(3), 10)} Tone</td>
-                  {/* <td >{((0.1 * value) + value)} KG</td> */}
-                  {/* <td >{(((0.1 * value) + value + 200)/1000)} Tone</td> */}
+                {Object.entries(beamSteel).map(([dia, weight]) => (
+                  < tr>
+                    <td >{dia} MM</td>
+                    <td >{parseFloat((weight).toFixed(3), 10)} KG</td>
+                    <td >{parseFloat((0.1 * weight).toFixed(3), 10)} KG</td>
+                    <td >{parseFloat(((0.1 * weight) + weight).toFixed(3), 10)} KG</td>
+                    <td >{parseFloat((((0.1 * weight) + weight + 200) / 1000).toFixed(3), 10)} Tone</td>
+
                   </tr>
                 ))}
-
-              
-
-            </tbody>
-          </table>
-        </div>
+              </tbody>
+            </table>
+          </div>
         </div>
         <button className='btn btn-outline-primary fw-bolder p-2 border-2' onClick={Print} >Print Page</button>
       </div>

@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import Axios from 'axios';
 
 export default function MaterialInColumn() {
 
   const [material, setMaterial] = useState({
-    name:"",
+    name: "",
+    noOfSameColumn: "",
     length: "",
     breadth: "",
     height: "",
@@ -17,6 +19,7 @@ export default function MaterialInColumn() {
   })
 
   const name = material.name;
+  const noOfSameColumn = parseFloat(material.noOfSameColumn);
   const length = parseFloat(material.length);
   const breadth = parseFloat(material.breadth);
   const height = parseFloat(material.height);
@@ -28,7 +31,7 @@ export default function MaterialInColumn() {
   const col_cov = parseFloat(material.col_cov);
   const diameter = parseFloat(material.diameter);
 
-  
+
 
   const [No_of_cement_bags, setNo_of_cement_bags] = useState("");
   const [Vol_of_sand, setVol_of_sand] = useState("");
@@ -40,6 +43,18 @@ export default function MaterialInColumn() {
 
   const [selectedOption, setSelectedOption] = useState(null);
 
+  const [myData, setMyData] = useState([]);
+  useEffect(() => {
+    Axios.get("http://localhost:8000/column/")
+      .then((res) =>
+        // console.log(res.data["Member List"])
+        setMyData(res.data),
+
+      );
+
+  }, [myData]);
+  // console.log("result  ",myData);
+
   const handleOptionChange = (event) => {
     setSelectedOption(event.target.value);
   };
@@ -47,10 +62,6 @@ export default function MaterialInColumn() {
   const submit = (e) => {
 
     e.preventDefault();
-
-
-
-
 
     // Calculation of Steel
     if (selectedOption === "circular") {
@@ -60,14 +71,14 @@ export default function MaterialInColumn() {
       const dry_vol = wet_vol * 1.54;
       const total_ratio = 1 + 1.5 + 3;  //ratio 1 : 1.5 : 3
       const vol_cement = (1 / total_ratio) * dry_vol;
-      setNo_of_cement_bags(Math.ceil(vol_cement / 0.03539));  // volumne of each cement bag in cubic feet is 1.25
+      setNo_of_cement_bags(Math.ceil((vol_cement * noOfSameColumn) / 0.03539));  // volumne of each cement bag in cubic feet is 1.25
 
       const vol_sand = (1.5 / total_ratio) * dry_vol;
-      setVol_of_sand(parseFloat(vol_sand.toFixed(3), 10));
+      setVol_of_sand(parseFloat((vol_sand * noOfSameColumn).toFixed(3), 10));
 
 
       const vol_Aggregate = (3 / total_ratio) * dry_vol;
-      setVol_of_Aggregate(parseFloat(vol_Aggregate.toFixed(3), 10));
+      setVol_of_Aggregate(parseFloat((vol_Aggregate * noOfSameColumn).toFixed(3), 10));
 
       const len_long_bar = height + leg_len;
       const total_len_long_bar = no_long_bar * len_long_bar;
@@ -78,8 +89,8 @@ export default function MaterialInColumn() {
       const total_no_of_rings = height / spac_stir + 1;
       const total_len_ring = total_no_of_rings * len_one_ring;
       const wei_ring_bar = (total_len_ring * stir_dia * stir_dia) / 162.2;
-      setLongitudinalBarWeight(parseFloat(wei_long_bar.toFixed(3), 10));
-      setStirrupsWeight(parseFloat(wei_ring_bar.toFixed(3), 10));
+      setLongitudinalBarWeight(parseFloat((wei_long_bar * noOfSameColumn).toFixed(3), 10));
+      setStirrupsWeight(parseFloat((wei_ring_bar * noOfSameColumn).toFixed(3), 10));
 
 
     }
@@ -90,14 +101,14 @@ export default function MaterialInColumn() {
       const dry_vol = wet_vol * 1.54;
       const total_ratio = 1 + 1.5 + 3;  //ratio 1 : 1.5 : 3
       const vol_cement = (1 / total_ratio) * dry_vol;
-      setNo_of_cement_bags(Math.ceil(vol_cement / 0.03539));  // volumne of each cement bag in cubic feet is 1.25
+      setNo_of_cement_bags(Math.ceil((vol_cement * noOfSameColumn) / 0.03539));  // volumne of each cement bag in cubic feet is 1.25
 
       const vol_sand = (1.5 / total_ratio) * dry_vol;
-      setVol_of_sand(parseFloat(vol_sand.toFixed(3), 10));
+      setVol_of_sand(parseFloat((vol_sand * noOfSameColumn).toFixed(3), 10));
 
 
       const vol_Aggregate = (3 / total_ratio) * dry_vol;
-      setVol_of_Aggregate(parseFloat(vol_Aggregate.toFixed(3), 10));
+      setVol_of_Aggregate(parseFloat((vol_Aggregate * noOfSameColumn).toFixed(3), 10));
 
 
       const len_one_bar = height + leg_len;
@@ -111,8 +122,8 @@ export default function MaterialInColumn() {
       const wei_long_bar = (total_len_long_bar * long_dia * long_dia) / 162.2;
       const wei_ring_bar = (total_len_ring * stir_dia * stir_dia) / 162.2;
 
-      setLongitudinalBarWeight(parseFloat(wei_long_bar.toFixed(3), 10));
-      setStirrupsWeight(parseFloat(wei_ring_bar.toFixed(3), 10));
+      setLongitudinalBarWeight(parseFloat((wei_long_bar * noOfSameColumn).toFixed(3), 10));
+      setStirrupsWeight(parseFloat((wei_ring_bar * noOfSameColumn).toFixed(3), 10));
 
     }
 
@@ -129,85 +140,100 @@ export default function MaterialInColumn() {
     setMaterial(newdata)
   }
 
-  const [tcement, setTcement] = useState(0);
-  const [tsand, setTsand] = useState(0);
-  const [taggregate, setTaggregate] = useState(0);
-  const [tlongsteel, setTlongsteel] = useState(0);
-  const [tstirsteel, setTstirsteel] = useState(0);
-  const [posts, setPosts] = useState([]);
-  // State to store the Map
-  const [myMap, setMyMap] = useState(new Map());
 
-  const addTask = () => {
-
+  const addTask = async (e) => {
+    e.preventDefault();
     console.log("addtask invoked")
-    setTcement(tcement + No_of_cement_bags);
-    setTsand(tsand + Vol_of_sand);
-    setTaggregate(taggregate + Vol_of_Aggregate);
-    setTlongsteel(tlongsteel + longitudinalBarWeight);
-    setTstirsteel(tstirsteel + stirrupsWeight);
-    setPosts([...posts, {
-      name: name, length: length, breadth: breadth, height: height, cement: No_of_cement_bags, sand: Vol_of_sand, aggregate: Vol_of_Aggregate, longsteel: longitudinalBarWeight, stirsteel: stirrupsWeight
-    }]);
 
-    // Check if the same main_dia exists
-    if (myMap.has(long_dia)) {
-      myMap.set(long_dia, myMap.get(long_dia) + longitudinalBarWeight);
-    } else {
-      myMap.set(long_dia, longitudinalBarWeight);
+    try {
+      console.log("hello");
+      await Axios.post("http://localhost:8000/column/", {
+        name,
+        selectedOption,
+        noOfSameColumn,
+        No_of_cement_bags,
+        Vol_of_sand,
+        Vol_of_Aggregate,
+        long_dia,
+        longitudinalBarWeight,
+        stir_dia,
+        stirrupsWeight,
+
+      });
+      const res = await Axios.get("http://localhost:8000/column/");
+      setMyData(res.data);
+      console.log("res", res.data);
+    }
+    catch (e) {
+      // console.log("here is error");
+      console.log(e);
     }
 
-    setMyMap(myMap);
 
-    // Check if the same dist_dia exists
-    if (myMap.has(stir_dia)) {
-      myMap.set(stir_dia, myMap.get(stir_dia) + stirrupsWeight);
-    } else {
-      myMap.set(stir_dia, stirrupsWeight);
-    }
-    // Update the state with the new Map
-    setMyMap(myMap);
-
-    console.log("here is the map values");
-    console.log(myMap)
+    // Call the Total function
+    await Total(e);
   };
 
+  const [columnSteel, setColumnSteel] = useState({});
+  const [total, setTotal] = useState([]);
+  const Total = async (e) => {
+    e.preventDefault();
 
 
-  const Print = () => {
+    try {
+
+      await Axios.patch("http://localhost:8000/resultcolumn/");
+
+      const response = await Axios.get("http://localhost:8000/resultcolumn/");
+      setTotal(response.data);
+      const { columnSteel } = response.data;
+      setColumnSteel(columnSteel);
+      console.log("response data", response.data);
+    }
+    catch (e) {
+      // console.log("here is error");
+      console.log(e);
+    }
+
+  };
+
+  const handleDelete = async (e, id) => {
+    // Perform delete operation using the id
+    console.log(`Deleting data with id ${id}`);
+    await Axios.delete(`http://localhost:8000/column/${id}`)
+      .then(response => {
+        if (response.status === 200) {
+          alert(`Data with id ${id} deleted successfully`);
+        }
+        else if (response.status === 400) {
+          console.log(`Data with id ${id} not Found`);
+        }
+        else {
+          console.error(`Failed to delete data with id ${id}`);
+        }
+      }).catch(error => {
+        console.error('Error:', error);
+      });
+
+    await Axios.get("http://localhost:8000/column/");
+    // Call the Total function
+    await Total(e);
+  };
+
+  const Print = async (e) => {
+    e.preventDefault();
     console.log('print');
-    const printContents = document.getElementById('printablediv').innerHTML;
+    let printContents = document.getElementById('printablediv').innerHTML;
 
-
-    // // Create a new window for printing
-    let printWindow = window.open('', '_blank');
-
-    // Set the content of the new window to the printable content
-    // printWindow.document.write('<html><head><title>Jain & Associates</title></head><body>');
-    printWindow.document.body.innerHTML = printContents;
-    // printWindow.document.write(printContents);
-    // printWindow.document.write('</body></html>');
-
-    // Print the contents
-    printWindow.print();
-
-    // Close the new window
-    printWindow.close();
-
-    // let originalContents = document.body.innerHTML;
-    // document.body.innerHTML = printContents;
-    // // let printWindow = window.open('', '_blank');
-    // // printWindow.document.body.innerHTML = printContents ;
-    // // printWindow.document.body.write(printContents);
-    // // printWindow.print();
-    // window.print();
-    // document.body.innerHTML = originalContents;
-
-    
-  }
-
-
-
+    let originalContents = document.body.innerHTML;
+    document.body.innerHTML = printContents;
+    window.print();
+    window.close();
+    document.body.innerHTML = originalContents;
+    // Reload the current page
+    window.location.reload();
+    await Total(e);
+  }         
 
   return (
     // <div className='p-4'>
@@ -223,7 +249,14 @@ export default function MaterialInColumn() {
                 <div className='col-sm-2'></div>
                 <label htmlFor="inputEmail3" className="col-sm-3 fs-5 col-form-label">Column Name:</label>
                 <div className="col-sm-5">
-                  <input type="text" className="form-control" id="name" placeholder="Enter C1,C2,....." value={material.name} onChange={(e) => change(e)} required/>
+                  <input type="text" className="form-control" id="name" placeholder="Enter C1,C2,....." value={material.name} onChange={(e) => change(e)} required />
+                </div>
+              </div>
+              <div className="row mb-3">
+                <div className='col-sm-0'></div>
+                <label htmlFor="inputEmail3" className="col-sm-5 fs-5 col-form-label">Number of <b>{material.name}</b> Column :</label>
+                <div className="col-sm-5">
+                  <input type="number" className="form-control" id="noOfSameColumn" placeholder="Enter No. of Same Column" value={material.noOfSameColumn} onChange={(e) => change(e)} required />
                 </div>
               </div>
               <div className="input-group row mb-3">
@@ -233,8 +266,8 @@ export default function MaterialInColumn() {
                 {/* </div> */}
                 <div className="col-sm-5">
                   <select className="custom-select form-control" id="inputGroupSelect01" value={selectedOption !== null ? selectedOption : ''} onChange={handleOptionChange}>
-                    <option selected>Simple Column</option>
-                    {/* <option value="simple"  >Simple Column</option> */}
+                    <option selected>Choose Column Type</option>
+                    <option value="simple"  >Simple Column</option>
                     <option value="circular"  >Circular Collumn</option>
                   </select>
                 </div>
@@ -356,84 +389,71 @@ export default function MaterialInColumn() {
         <table className="table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Length</th>
-              <th>Depth</th>
-              <th>Width</th>
-              <th>Cement</th>
+              <th>Name of Column</th>
+              <th>No of Same Column</th>
+              <th>Column Type</th>
+              <th>No. of Cement bags</th>
               <th>Sand</th>
               <th>Aggregate</th>
-              {/* <th>Weight Long Bar</th>
-              <th>Weight Stirrups Bar</th> */}
+              <th>Actions</th>
 
 
             </tr>
           </thead>
           <tbody>
-            {posts.map((post) => (
-
+            {myData.map((myData) => (
               <tr  >
-                <td>{post.name}</td>
-                <td>{post.length}</td>
-                <td>{post.breadth}</td>
-                <td>{post.height}</td>
-                <td>{post.cement}</td>
-                <td>{post.sand}</td>
-                <td>{post.aggregate}</td>
-                {/* <td>{post.longsteel}</td>
-                <td>{post.stirsteel}</td> */}
-
+                <td >{myData.name}</td>
+                <td >{myData.noOfSameColumn}</td>
+                <td >{myData.selectedOption}</td>
+                <td >{myData.No_of_cement_bags}</td>
+                <td >{myData.Vol_of_sand}</td>
+                <td >{myData.Vol_of_Aggregate}</td>
+                <th><button className='btn btn-outline-primary fw-bolder p-2 border-2 m-2' onClick={(e) => handleDelete(e, myData._id)}>Delete</button></th>
               </tr>
 
             ))}
             <tr>
-              <th>Total </th>
+              <th><button className='btn btn-outline-primary fw-bolder p-2 border-2 ' onClick={Total} >Click here to Get Total</button></th>
               <td> </td>
               <td> </td>
-              <td> </td>
-              <th>{tcement}</th>
-              <th>{tsand}</th>
-              <th>{taggregate}</th>
-              {/* <th>{tlongsteel}</th>
-              <th>{tstirsteel}</th> */}
+              <th key={total.columnCement}>{total.columnCement}</th>
+              <th key={total.columnSand}>{total.columnSand}</th>
+              <th key={total.columnAggregate}>{total.columnAggregate}</th>
+              <th></th>
             </tr>
           </tbody>
 
         </table>
-        
-        <div>
-        <h3 className='mt-3'>Overall Steel Needed:</h3>
-        <div>
-          <table className="table">
-            <thead>
-              <tr>
-              <th>Diameter</th>
-              <th>Total</th>
-              <th>Wastage of 10%</th>
-              <th>Overall Total</th>
-              <th>Order Place</th>
-              </tr>
-            </thead>
-            <tbody>
 
-              {Array.from(myMap.entries()).map(([key, value]) => (
-                < tr>
-                  <td >{key} MM</td>
-                  {/* <td >{value} KG</td> */}
-                  <td >{parseFloat((value).toFixed(3), 10)} KG</td>
-                  <td >{parseFloat((0.1 * value).toFixed(3), 10)} KG</td>
-                  <td >{parseFloat(((0.1 * value) + value).toFixed(3), 10)} KG</td>
-                  <td >{parseFloat((((0.1 * value) + value + 200)/1000).toFixed(3), 10)} Tone</td>
-                  {/* <td >{((0.1 * value) + value)} KG</td> */}
-                  {/* <td >{(((0.1 * value) + value + 200)/1000)} Tone</td> */}
+        <div>
+          <h3 className='mt-3'>Overall Steel Needed:</h3>
+          <div>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Diameter</th>
+                  <th>Total</th>
+                  <th>Wastage of 10%</th>
+                  <th>Overall Total</th>
+                  <th>Order Place</th>
+                </tr>
+              </thead>
+              <tbody>
+
+                {Object.entries(columnSteel).map(([dia, weight]) => (
+                  < tr>
+                    <td >{dia} MM</td>
+                    <td >{parseFloat((weight).toFixed(3), 10)} KG</td>
+                    <td >{parseFloat((0.1 * weight).toFixed(3), 10)} KG</td>
+                    <td >{parseFloat(((0.1 * weight) + weight).toFixed(3), 10)} KG</td>
+                    <td >{parseFloat((((0.1 * weight) + weight + 200) / 1000).toFixed(3), 10)} Tone</td>
                   </tr>
                 ))}
 
-              
-
-            </tbody>
-          </table>
-        </div>
+              </tbody>
+            </table>
+          </div>
         </div>
         <button className='btn btn-outline-primary fw-bolder p-2 border-2 ' onClick={Print} >Print Page</button>
       </div>
