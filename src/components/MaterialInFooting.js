@@ -42,15 +42,34 @@ export default function MaterialInFooting() {
   const [showresult, setShowresult] = useState(false);
 
   const [myData, setMyData] = useState([]);
+  const [login, setlogin] = useState(false);
+  const [loginData, setloginData] = useState("");
   useEffect(() => {
-    Axios.get("http://localhost:8000/footing/")
-      .then((res) =>
-        // console.log(res.data["Member List"])
-        setMyData(res.data),
 
+    Axios.get("http://localhost:8000/profile")
+      .then((logindata) => {
+        if (logindata.data.length !== 0) {
+          setlogin(true);
+          setloginData(logindata.data);
+        }
+        else {
+          setlogin(false);
+          setloginData("");
+        }
+      })
+
+    Axios.get("http://localhost:8000/footing/")
+      .then((res) =>{
+        if (login) {
+          setMyData(res.data);
+        }
+        else {
+          setMyData([]);
+        }
+      }
       );
 
-  }, [myData]);
+  }, [myData,login]);
 
   const submit = (e) => {
 
@@ -107,8 +126,10 @@ export default function MaterialInFooting() {
     console.log("addtask invoked")
 
     try {
-      console.log("hello");
+      const logindata = await Axios.get("http://localhost:8000/profile");
       await Axios.post("http://localhost:8000/footing/", {
+        clientName:logindata.data.name,
+        clientNumber:logindata.data.number,
         name,
         noOfSameFooting,
         No_of_cement_bags,
@@ -299,13 +320,17 @@ export default function MaterialInFooting() {
 
       </div>
       <div className="m-3" id='printablediv'>
-        <h1 className="text-center mb-4">List</h1>
+        <h1 className="text-center mb-4">List of Material Estimated for Footing</h1>
         <div id="create-task" className="mb-3">
           <div className="input-group">
 
             <button className="btn btn-outline-primary fw-bolder p-2 border-2" onClick={addTask}>
               Add
             </button>
+          </div>
+          <div className='text-start mt-4'>
+            <p>Client Name: {loginData.name}</p>
+            <p>Phone No.: {loginData.number}</p>
           </div>
         </div>
         <table className="table">

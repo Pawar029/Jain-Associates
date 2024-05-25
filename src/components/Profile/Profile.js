@@ -12,6 +12,7 @@ const Profile = () => {
   const fetchData = async () => {
     try {
       const userNumber = window.localStorage.getItem('number');
+      // const logindata = await Axios.get("http://localhost:8000/profile");
       const response = await Axios.get(`http://localhost:8000/oneregister?number=${userNumber}`);
       // console.log(response.data);
       // const { name, location, number, email } = response.data;

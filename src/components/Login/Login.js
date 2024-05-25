@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { Link } from 'react-router-dom';
 import Axios from "axios";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import './Login.css';
 
 const Login = () => {
     const [name, setName] = useState("");
     const [number, setNumber] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -20,7 +20,8 @@ const Login = () => {
             });
             
             if (res.data.success) {
-                navigate("/");
+                // navigate("/");
+                window.location.href = '/';
             } else {
                 setErrorMessage(res.data.message);
             }

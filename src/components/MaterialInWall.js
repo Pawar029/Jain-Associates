@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Axios from 'axios';
 
 
@@ -25,15 +25,47 @@ export default function MaterialInWall() {
   const [showresult, setShowresult] = useState(false);
 
   const [myData, setMyData] = useState([]);
+  const [login, setlogin] = useState(false);
+  const [loginData, setloginData] = useState("");
   useEffect(() => {
+
+    Axios.get("http://localhost:8000/profile")
+      .then((logindata) => {
+        if (logindata.data.length !== 0) {
+          setlogin(true);
+          setloginData(logindata.data);
+        }
+        else {
+          setlogin(false);
+          setloginData("");
+        }
+      })
+
     Axios.get("http://localhost:8000/wall/")
-      .then((res) =>
+      .then((res) => {
+        if (login) {
+          setMyData(res.data);
+        }
+        else {
+          setMyData([]);
+        }
+      }
         // console.log(res.data["Member List"])
-        setMyData(res.data),
+      )
 
-      );
+    
 
-  }, [myData]);
+    // const logindata = Axios.get("http://localhost:8000/profile");
+    // setloginName(logindata.data.name);
+    // setloginNumber(logindata.data.number);
+    // console.log("here is login data ",loginName);
+
+  }, [myData, login]);
+
+
+  // console.log("login data in wall ",login);
+  // console.log("login data in wall ",loginName);
+  // console.log("login data in wall ",loginNumber);
 
   const calculateBricks = (e) => {
     e.preventDefault();
@@ -41,7 +73,7 @@ export default function MaterialInWall() {
     // Assuming standard brick dimensions
     const brickVolume = 0.2 * 0.1 * 0.1; // Length * Breadth * Height of a brick
     const bricksNeeded = Math.ceil(volume / brickVolume);
-    setNumberOfBricks(noOfSameWall*bricksNeeded);
+    setNumberOfBricks(noOfSameWall * bricksNeeded);
     console.log(numberOfBricks);
     const wet_volume = (volume * 35.3147) - (bricksNeeded * 0.05434);
     const total_ratio = 1 + 3;   //ratio for motar
@@ -58,10 +90,10 @@ export default function MaterialInWall() {
     const cement_req = (1 / tot_ratio) * dry_vol;
     const fullCement = volumeOfCement + cement_req;
     const noOfbags = Math.ceil(fullCement / 0.03539);
-    setNo_of_cement_bags(noOfSameWall*noOfbags);
+    setNo_of_cement_bags(noOfSameWall * noOfbags);
     const sand_req = (5 / tot_ratio) * dry_vol;
     const fullSand = volumeOfSand + sand_req;
-    setVol_of_sand(parseFloat((noOfSameWall*fullSand).toFixed(3), 10));
+    setVol_of_sand(parseFloat((noOfSameWall * fullSand).toFixed(3), 10));
     // setquaOfSandInMo(fullSand);
 
     setShowresult(true)
@@ -79,8 +111,12 @@ export default function MaterialInWall() {
     console.log("addtask invoked")
 
     try {
-      console.log("hello");
+      const logindata = await Axios.get("http://localhost:8000/profile");
+      // setloginName(logindata.data.name);
+      // setloginNumber(logindata.data.number);
       await Axios.post("http://localhost:8000/wall/", {
+        clientName: logindata.data.name,
+        clientNumber: logindata.data.number,
         name,
         noOfSameWall,
         numberOfBricks,
@@ -161,76 +197,80 @@ export default function MaterialInWall() {
   }
 
   return (
-      <div align="center" className='p-4' >
-        <figure className="figure" >
-          <figcaption className="figure-caption" >
-            <div className='  p-2 my-4 text-primary-emphasis bg-table-info bg-light border border-primary rounded-3' >
-              <h2 className='p-2' align='center'>Calculation of Number of Bricks</h2>
+    <div align="center" className='p-4' >
+      <figure className="figure" >
+        <figcaption className="figure-caption" >
+          <div className='  p-2 my-4 text-primary-emphasis bg-table-info bg-light border border-primary rounded-3' >
+            <h2 className='p-2' align='center'>Calculation of Number of Bricks</h2>
 
-              <form className='align-center'  >
-                <div className="row mb-3">
-                  <div className='col-sm-2'></div>
-                  <label htmlFor="inputEmail3" className="col-sm-3 fs-5 col-form-label">Wall Name:</label>
-                  <div className="col-sm-5">
-                    <input type="text" className="form-control" id="name" placeholder="Enter W1,W2,....." value={material.name} onChange={(e) => change(e)} required />
-                  </div>
+            <form className='align-center'  >
+              <div className="row mb-3">
+                <div className='col-sm-2'></div>
+                <label htmlFor="inputEmail3" className="col-sm-3 fs-5 col-form-label">Wall Name:</label>
+                <div className="col-sm-5">
+                  <input type="text" className="form-control" id="name" placeholder="Enter W1,W2,....." value={material.name} onChange={(e) => change(e)} required />
                 </div>
-                <div className="row mb-3">
+              </div>
+              <div className="row mb-3">
                 <div className='col-sm-0'></div>
                 <label htmlFor="inputEmail3" className="col-sm-5 fs-5 col-form-label">Number of <b>{material.name}</b> Wall :</label>
                 <div className="col-sm-5">
                   <input type="number" className="form-control" id="noOfSameWall" placeholder="Enter No. of Same Column" value={material.noOfSameWall} onChange={(e) => change(e)} required />
                 </div>
               </div>
-                <div className="row mb-3">
-                  <div className='col-sm-2'></div>
-                  <label htmlFor="inputEmail3" className="col-sm-3 fs-5 col-form-label">Length:</label>
-                  <div className="col-sm-5">
-                    {/* <input type="number" className="form-control" id="length" placeholder="Enter in Meter" value={material.length} onChange={(e) => change(e)} required /> */}
-                    <input type="number" className="form-control" id="length" inputMode="decimal" placeholder="Enter in meter" value={material.length} onChange={(e) => change(e)} required />
-                  </div>
+              <div className="row mb-3">
+                <div className='col-sm-2'></div>
+                <label htmlFor="inputEmail3" className="col-sm-3 fs-5 col-form-label">Length:</label>
+                <div className="col-sm-5">
+                  {/* <input type="number" className="form-control" id="length" placeholder="Enter in Meter" value={material.length} onChange={(e) => change(e)} required /> */}
+                  <input type="number" className="form-control" id="length" inputMode="decimal" placeholder="Enter in meter" value={material.length} onChange={(e) => change(e)} required />
                 </div>
-                <div className="row mb-3">
-                  <div className='col-sm-2'></div>
-                  <label htmlFor="inputEmail3" className="col-sm-3 fs-5 col-form-label">Breadth:</label>
-                  <div className="col-sm-5">
-                    {/* <input type="number" className="form-control" id="length" placeholder="Enter in Meter" value={material.length} onChange={(e) => change(e)} required /> */}
-                    <input type="number" className="form-control" id="breadth" inputMode="decimal" placeholder="Enter in meter" value={material.breadth} onChange={(e) => change(e)} required />
-                  </div>
+              </div>
+              <div className="row mb-3">
+                <div className='col-sm-2'></div>
+                <label htmlFor="inputEmail3" className="col-sm-3 fs-5 col-form-label">Breadth:</label>
+                <div className="col-sm-5">
+                  {/* <input type="number" className="form-control" id="length" placeholder="Enter in Meter" value={material.length} onChange={(e) => change(e)} required /> */}
+                  <input type="number" className="form-control" id="breadth" inputMode="decimal" placeholder="Enter in meter" value={material.breadth} onChange={(e) => change(e)} required />
                 </div>
-                <div className="row mb-3">
-                  <div className='col-sm-2'></div>
-                  <label htmlFor="inputEmail3" className="col-sm-3 fs-5 col-form-label">Thickness:</label>
-                  <div className="col-sm-5">
-                    {/* <input type="number" className="form-control" id="length" placeholder="Enter in Meter" value={material.length} onChange={(e) => change(e)} required /> */}
-                    <input type="number" className="form-control" id="height" inputMode="decimal" placeholder="Enter in meter" value={material.height} onChange={(e) => change(e)} required />
-                  </div>
+              </div>
+              <div className="row mb-3">
+                <div className='col-sm-2'></div>
+                <label htmlFor="inputEmail3" className="col-sm-3 fs-5 col-form-label">Thickness:</label>
+                <div className="col-sm-5">
+                  {/* <input type="number" className="form-control" id="length" placeholder="Enter in Meter" value={material.length} onChange={(e) => change(e)} required /> */}
+                  <input type="number" className="form-control" id="height" inputMode="decimal" placeholder="Enter in meter" value={material.height} onChange={(e) => change(e)} required />
                 </div>
+              </div>
 
-                <div align='center' className="align-content-center">
-                  <button type="submit" className="btn btn-outline-primary fw-bolder p-2 border-2 fs-5" onClick={calculateBricks}>Calculate Material Needed</button>
-                  {showresult && (
-                    <div id="textField" className='fs-4' >
-                      <div className='fs-4 mt-2'>
-                        <p>No. of Bricks needed: {numberOfBricks !== null ? numberOfBricks : ''}</p>
-                        <p>No. of Cement bags: {No_of_cement_bags !== null ? No_of_cement_bags : ''}</p>
-                        <p>Volume of Sand (Cubic feet): {Vol_of_sand !== null ? Vol_of_sand : ''} ({Vol_of_sand / 100} brass)</p>
-                      </div>
+              <div align='center' className="align-content-center">
+                <button type="submit" className="btn btn-outline-primary fw-bolder p-2 border-2 fs-5" onClick={calculateBricks}>Calculate Material Needed</button>
+                {showresult && (
+                  <div id="textField" className='fs-4' >
+                    <div className='fs-4 mt-2'>
+                      <p>No. of Bricks needed: {numberOfBricks !== null ? numberOfBricks : ''}</p>
+                      <p>No. of Cement bags: {No_of_cement_bags !== null ? No_of_cement_bags : ''}</p>
+                      <p>Volume of Sand (Cubic feet): {Vol_of_sand !== null ? Vol_of_sand : ''} ({Vol_of_sand / 100} brass)</p>
                     </div>
-                  )}
-                </div>
-              </form>
-            </div>
-          </figcaption>
-        </figure>
-        <div className="m-3" id='printablediv'>
-        <h1 className="text-center mb-4">List</h1>
+                  </div>
+                )}
+              </div>
+            </form>
+          </div>
+        </figcaption>
+      </figure>
+      <div className="m-3" id='printablediv'>
+        <h1 className="text-center mb-4">List of Material Estimated for Wall</h1>
         <div id="create-task" className="mb-3">
           <div className="input-group">
 
             <button className="btn btn-outline-primary fw-bolder p-2 border-2" onClick={addTask}>
               Add
             </button>
+          </div>
+          <div className='text-start mt-4'>
+            <p>Client Name: {loginData.name}</p>
+            <p>Phone No.: {loginData.number}</p>
           </div>
         </div>
         <table className="table">
@@ -270,7 +310,7 @@ export default function MaterialInWall() {
 
         <button className='btn btn-outline-primary fw-bolder p-2 border-2 ' onClick={Print} >Print Page</button>
       </div>
-      </div>
+    </div>
   )
 }
 
