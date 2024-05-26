@@ -74,13 +74,16 @@ export default function MaterialInSlab() {
     Axios.get("http://localhost:8000/slab/")
       .then((res) =>{
         if(login){
-          setMyData(res.data)
+          setMyData(res.data);
+        
         }
         else{
           setMyData([]);
         }
       }
       );
+
+    
     
 
   }, [myData,login]);
@@ -234,8 +237,6 @@ export default function MaterialInSlab() {
   const [total, setTotal] = useState([]);
   const Total = async (e) => {
     e.preventDefault();
-
-
     try {
 
       await Axios.patch("http://localhost:8000/result/");
@@ -243,7 +244,9 @@ export default function MaterialInSlab() {
       const response = await Axios.get("http://localhost:8000/result/");
       setTotal(response.data);
       const { slabSteel } = response.data;
-      setSlabSteel(slabSteel);
+      if(slabSteel){
+        setSlabSteel(slabSteel);
+      }
       console.log("response data", response.data);
     }
     catch (e) {

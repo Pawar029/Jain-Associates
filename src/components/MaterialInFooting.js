@@ -168,7 +168,9 @@ export default function MaterialInFooting() {
       const response = await Axios.get("http://localhost:8000/resultfooting/");
       setTotal(response.data);
       const { footingSteel } = response.data;
-      setFootingSteel(footingSteel);
+      if(footingSteel){
+        setFootingSteel(footingSteel);
+      }
       console.log("response data", response.data);
     }
     catch (e) {

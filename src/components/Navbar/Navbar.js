@@ -77,7 +77,7 @@ export default function Navbar() {
         console.error('Error:', error);
       });
 
-    // window.location.href = '/';
+    window.location.href = '/';
   }
 
 
@@ -113,6 +113,9 @@ export default function Navbar() {
                 <Link className="nav-link active fs-5" aria-current="page" to="/stair">STAIRCASE</Link>
               </li>
             </ul>
+            <div>
+              <Link className='text-blue btn btn-outline-primary m-3 me-5' to="/clientlist">List of all Clients</Link>
+            </div>
             <div className='d-flex m-3'>
             {
               loggedIn ? (
@@ -130,13 +133,13 @@ export default function Navbar() {
 
                   </span>
                   <div className=' m-2 mt-4'>
-                  <Link className=" fs-4 text-blue"  onClick={(e) => handleLogout(e, loginData._id)}>Logout</Link>
+                  <Link className=" fs-4 text-blue btn btn-outline-primary"  onClick={(e) => handleLogout(e, loginData._id)}>Logout</Link>
                   </div>
                 </div>) : (
                 <div className="d-flex ">
-                  <Link className='m-2 fs-5 btn btn-outline-secondary' to="/login">Login</Link>
+                  <Link className='m-2 fs-5 btn btn-outline-dark' to="/login">Login</Link>
                   {/* <p className='m-2 fs-5'> / </p> */}
-                  <Link className='m-2 fs-5 btn btn-outline-secondary' to="/register">New User</Link>
+                  <Link className='m-2 fs-5 btn btn-outline-dark' to="/register">New User</Link>
                 </div>
               )
             }

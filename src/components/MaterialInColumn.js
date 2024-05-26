@@ -200,8 +200,6 @@ export default function MaterialInColumn() {
   const [total, setTotal] = useState([]);
   const Total = async (e) => {
     e.preventDefault();
-
-
     try {
 
       await Axios.patch("http://localhost:8000/resultcolumn/");
@@ -209,7 +207,9 @@ export default function MaterialInColumn() {
       const response = await Axios.get("http://localhost:8000/resultcolumn/");
       setTotal(response.data);
       const { columnSteel } = response.data;
-      setColumnSteel(columnSteel);
+      if(columnSteel){
+        setColumnSteel(columnSteel);
+      }
       console.log("response data", response.data);
     }
     catch (e) {

@@ -172,7 +172,10 @@ export default function MaterialInStaircase() {
       const response = await Axios.get("http://localhost:8000/resultstair/");
       setTotal(response.data);
       const { stairSteel } = response.data;
-      setStairSteel(stairSteel);
+      if(stairSteel){
+        setStairSteel(stairSteel);
+      }
+      
       console.log("response data", response.data);
     }
     catch (e) {

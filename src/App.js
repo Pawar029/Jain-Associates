@@ -4,6 +4,7 @@
 import * as React from "react";
 // import { BrowserRouter } from "react-router-dom";
 import {BrowserRouter, Route, Routes } from 'react-router-dom';
+import ClientList from "./components/ClientList";
 import Footer from './components/Footer';
 import Login from "./components/Login/Login";
 import MaterialInBeam from "./components/MaterialInBeam";
@@ -38,6 +39,7 @@ function App() {
           <Route path="/register" element={<Register/>} />
           <Route path="/login" element={<Login/>} />
           <Route path="/profile" element={<Profile/>}/>
+          <Route path="/clientlist" element={<ClientList/>}/>
           <Route path="/ok" element={<Footer />}/>
           
         </Routes>

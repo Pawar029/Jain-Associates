@@ -189,7 +189,9 @@ export default function MaterialInBeam() {
       const response = await Axios.get("http://localhost:8000/resultbeam/");
       setTotal(response.data);
       const { beamSteel } = response.data;
-      setBeamSteel(beamSteel);
+      if(beamSteel){
+        setBeamSteel(beamSteel);
+      }
       console.log("response data", response.data);
     }
     catch (e) {
