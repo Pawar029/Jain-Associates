@@ -8,20 +8,20 @@ export default function MaterialInSlab() {
 
   const [material, setMaterial] = useState({
     name: "",
-    noOfSameSlab:0,
-    length: 0,
-    bredth: 0,
-    thick: 0,
-    main_dia: 0,
-    dist_dia: 0,
-    spac_main: 0,
-    spac_dist: 0,
-    cover_slab: 0,
-    top_ex_bar: 0,
-    spac_ex_bar: 0,
-    widt_b1: 0,
-    widt_b2: 0,
-    beam_cov: 0
+    noOfSameSlab:"",
+    length: "",
+    bredth: "",
+    thick: "",
+    main_dia: "",
+    dist_dia: "",
+    spac_main: "",
+    spac_dist: "",
+    cover_slab: "",
+    top_ex_bar: "",
+    spac_ex_bar: "",
+    widt_b1: "",
+    widt_b2: "",
+    beam_cov: ""
 
 
   })

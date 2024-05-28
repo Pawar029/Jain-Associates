@@ -72,7 +72,7 @@ export default function SlidingImages() {
               <figure className="figure" >
         {/* <img src={pic} className="bg-opacity-25 figure-img img-fluid rounded" alt="..." /> */}
         <figcaption className="figure-caption" >
-        <div className='container fs-4 fst-italic mt-2 p-3  text-primary-emphasis bg-table-info bg-success-subtle borde border-primary rounded-3' >
+        <div className='container fs-4 mt-2 p-4  text-primary-emphasis bg-table-info bg-success-subtle borde border-primary rounded-3' >
                 <div className='text-start'>
                 <span className='fs-1'>W</span>elcome to <b>Jain And Associates</b>, where 
                 excellence meets construction expertise. With 17+ years of industry experience, we pride ourselves on delivering top-quality services tailored to meet our clients' needs. From residential renovations to large-scale commercial projects, we bring precision, professionalism, and passion to every job. Our team of skilled professionals is committed to safety, innovation, and exceeding expectations. Explore our portfolio to see our completed projects and read testimonials from satisfied clients. Ready to start your next project? Contact us today for a consultation. Let's build something extraordinary together.
